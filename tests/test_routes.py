@@ -36,7 +36,7 @@ from tests.factories import ProductFactory
 
 # Disable all but critical errors during normal test run
 # uncomment for debugging failing tests
-# logging.disable(logging.CRITICAL)
+logging.disable(logging.CRITICAL)
 
 # DATABASE_URI = os.getenv('DATABASE_URI', 'sqlite:///../db/test.db')
 DATABASE_URI = os.getenv(
@@ -114,17 +114,22 @@ class TestProductRoutes(TestCase):
     # ----------------------------------------------------------
     def test_create_product(self):
         """It should Create a new Product"""
+        # Create test product using factory
         test_product = ProductFactory()
-        logging.debug("Test Product: %s", test_product.serialize())
+
+        # POST the product to the API
         response = self.client.post(BASE_URL, json=test_product.serialize())
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Make sure location header is set
-        location = response.headers.get("Location", None)
-        self.assertIsNotNone(location)
-
-        # Check the data is correct
+        # Extract and validate the response JSON
         new_product = response.get_json()
+        self.assertIsNotNone(new_product, "Expected JSON response, got None")
+
+        # Get the ID returned by the API (not from the test_product)
+        product_id = new_product["id"]
+        location = f"{BASE_URL}/{product_id}"
+
+        # Check that the returned product matches the posted data
         self.assertEqual(new_product["name"], test_product.name)
         self.assertEqual(new_product["description"], test_product.description)
         self.assertEqual(Decimal(new_product["price"]), test_product.price)
@@ -132,18 +137,30 @@ class TestProductRoutes(TestCase):
         self.assertEqual(new_product["category"], test_product.category.name)
 
         #
-        # Uncomment this code once READ is implemented
+        # Check that the product was correctly saved and can be retrieved
         #
 
-        # # Check that the location header was correct
-        # response = self.client.get(location)
-        # self.assertEqual(response.status_code, status.HTTP_200_OK)
-        # new_product = response.get_json()
-        # self.assertEqual(new_product["name"], test_product.name)
-        # self.assertEqual(new_product["description"], test_product.description)
-        # self.assertEqual(Decimal(new_product["price"]), test_product.price)
-        # self.assertEqual(new_product["available"], test_product.available)
-        # self.assertEqual(new_product["category"], test_product.category.name)
+        # Log the location being accessed
+        print(f"Requesting URL: {location}")
+        response = self.client.get(location)
+        print("Status Code:", response.status_code)
+        print("Response Data:", response.data.decode())
+        print("Content-Type:", response.content_type)
+
+        # Ensure the GET request was successful
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Validate that the returned product matches what we originally posted
+        fetched_product = response.get_json()
+        self.assertIsNotNone(fetched_product, "Expected JSON from GET response, got None")
+
+        self.assertEqual(fetched_product["id"], product_id)
+        self.assertEqual(fetched_product["name"], test_product.name)
+        self.assertEqual(fetched_product["description"], test_product.description)
+        self.assertEqual(Decimal(fetched_product["price"]), test_product.price)
+        self.assertEqual(fetched_product["available"], test_product.available)
+        self.assertEqual(fetched_product["category"], test_product.category.name)
+
 
     def test_create_product_with_no_name(self):
         """It should not Create a Product without a name"""
