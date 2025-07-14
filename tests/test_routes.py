@@ -161,7 +161,6 @@ class TestProductRoutes(TestCase):
         self.assertEqual(fetched_product["available"], test_product.available)
         self.assertEqual(fetched_product["category"], test_product.category.name)
 
-
     def test_create_product_with_no_name(self):
         """It should not Create a Product without a name"""
         product = self._create_products()[0]
@@ -180,22 +179,6 @@ class TestProductRoutes(TestCase):
         """It should not Create a Product with wrong Content-Type"""
         response = self.client.post(BASE_URL, data={}, content_type="plain/text")
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
-
-    #
-    # ADD YOUR TEST CASES HERE
-    #
-
-    ######################################################################
-    # Utility functions
-    ######################################################################
-
-    def get_product_count(self):
-        """save the current number of products"""
-        response = self.client.get(BASE_URL)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        data = response.get_json()
-        # logging.debug("data = %s", data)
-        return len(data)
 
     def test_get_product(self):
         """It should Get a single Product"""
@@ -297,3 +280,14 @@ class TestProductRoutes(TestCase):
         # check the data just to be sure
         for product in data:
             self.assertEqual(product["available"], True)
+
+    ######################################################################
+    # Utility functions
+    ######################################################################
+    def get_product_count(self):
+        """save the current number of products"""
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        # logging.debug("data = %s", data)
+        return len(data)
