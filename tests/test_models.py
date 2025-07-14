@@ -144,12 +144,10 @@ class TestProductModel(unittest.TestCase):
         self.assertIsNotNone(product.id)
         # Change it an save it
         product.description = "testing"
-        original_id = product.id
         product.update()
         product.id = None
         with self.assertRaises(DataValidationError):
             product.update()
-        
 
     def test_delete_a_product(self):
         """It should Delete a Product"""
@@ -212,11 +210,11 @@ class TestProductModel(unittest.TestCase):
         """It should raise error if available is not boolean deserialize a Product from a dictionary"""
         product = ProductFactory()
         productfake = {
-            "name":"Fedora",
-            "description":"A red hat",
-            "price":12.50,
-            "available":'True',
-            "category":Category.CLOTHS
+            "name": "Fedora",
+            "description": "A red hat",
+            "price": 12.50,
+            "available": 'True',
+            "category": Category.CLOTHS
         }
 
         with self.assertRaises(DataValidationError):
@@ -226,22 +224,23 @@ class TestProductModel(unittest.TestCase):
         """It should raise error if Invalid attribute deserialize a Product from a dictionary"""
         product = ProductFactory()
         productfake = {
-            "name":"Fedora",
-            "descripption":"A red hat",
-            "price":12.50,
-            "available":'True',
-            "category":Category.CLOTHS
+            "name": "Fedora",
+            "descripption": "A red hat",
+            "price": 12.50,
+            "available": 'True',
+            "category": Category.CLOTHS
         }
 
         with self.assertRaises(DataValidationError):
             product.deserialize(productfake)
 
     def test_deserialize_invalid_price(self):
+        """It should raise error if for invalid price in product deserialize"""
         product = ProductFactory()
         data = {
             "name": "Phone",
             "description": "Smartphone",
-            "price": None,  # Decimal(None) will raise TypeError
+            "price": None,
             "available": True,
             "category": "ELECTRONICS"
         }
@@ -250,6 +249,7 @@ class TestProductModel(unittest.TestCase):
         self.assertIn("bad or no data", str(context.exception))
 
     def test_deserialize_invalid_category(self):
+        """It should raise error if for invalid category in product deserialize"""
         product = ProductFactory()
         data = {
             "name": "Phone",
@@ -261,4 +261,3 @@ class TestProductModel(unittest.TestCase):
         with self.assertRaises(DataValidationError) as context:
             product.deserialize(data)
         self.assertIn("Invalid attribute", str(context.exception))
-
